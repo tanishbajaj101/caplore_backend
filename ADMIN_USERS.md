@@ -1,8 +1,24 @@
 # Managing `app_users` as an Admin
 
-There is no admin API/UI for this table — it's managed directly against the
-Railway Postgres database via `psql`. This doc covers connecting, and the
-insert/update/delete SQL you'll need.
+The `caplore_admin` dashboard manages this table through backend admin API
+routes. For production, configure the backend admin password hash and admin
+JWT secret instead of putting a plaintext admin password in the admin app.
+
+Set these on the backend host:
+
+```sh
+ADMIN_DASHBOARD_PASSWORD_HASH=<bcrypt hash of the admin password>
+ADMIN_JWT_SECRET=<long random secret>
+ADMIN_JWT_EXPIRES_IN=8h
+```
+
+Generate the admin password hash from this directory:
+
+```sh
+node scripts/hash-password.mjs "YourAdminPassword"
+```
+
+The direct `psql` steps below are still useful for emergency/manual operations.
 
 Table shape (defined in `server.mjs`):
 

@@ -5,6 +5,7 @@ import { corsMiddleware } from "./middleware/cors.mjs";
 import { miscRouter } from "./routes/misc.mjs";
 import { authRouter } from "./routes/auth.mjs";
 import { communityRouter } from "./routes/community.mjs";
+import { adminRouter } from "./routes/admin.mjs";
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: false, limit: "64kb" }));
 
 app.use("/api", miscRouter);
 app.use("/api", authRouter);
+app.use("/api", adminRouter);
 app.use("/api/community", communityRouter);
 
 app.use("/api", (_request, response) => {
