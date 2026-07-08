@@ -16,7 +16,7 @@ export function corsMiddleware(request, response, next) {
   if (origin && allowedOrigins.has(origin)) {
     response.set("Access-Control-Allow-Origin", origin);
     response.vary("Origin");
-    response.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     response.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
 
