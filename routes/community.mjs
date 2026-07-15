@@ -420,9 +420,19 @@ communityRouter.post("/posts/:id/comments", async (request, response) => {
       return response.status(404).json({ error: "Post not found." });
     }
 
+    if (parsed.value.parentCommentId) {
+      const parentResult = await pool.query(
+        `SELECT id FROM comments WHERE id = $1 AND post_id = $2`,
+        [parsed.value.parentCommentId, postId],
+      );
+      if (!parentResult.rows.length) {
+        return response.status(400).json({ error: "Parent comment not found on this post." });
+      }
+    }
+
     const insertResult = await pool.query(
-      `INSERT INTO comments (post_id, author_id, body) VALUES ($1, $2, $3) RETURNING id, created_at`,
-      [postId, request.userId, parsed.value.body],
+      `INSERT INTO comments (post_id, author_id, parent_comment_id, body) VALUES ($1, $2, $3, $4) RETURNING id, created_at`,
+      [postId, request.userId, parsed.value.parentCommentId, parsed.value.body],
     );
     const userResult = await pool.query(`SELECT name FROM app_users WHERE id = $1`, [request.userId]);
 
@@ -430,6 +440,7 @@ communityRouter.post("/posts/:id/comments", async (request, response) => {
       success: true,
       comment: {
         id: Number(insertResult.rows[0].id),
+        parentCommentId: parsed.value.parentCommentId,
         authorUsername: request.username,
         authorName: userResult.rows[0]?.name ?? request.username,
         body: parsed.value.body,
@@ -455,7 +466,7 @@ communityRouter.get("/posts/:id/comments", async (request, response) => {
     }
 
     const result = await pool.query(
-      `SELECT c.id, c.body, c.created_at, u.username, u.name
+      `SELECT c.id, c.parent_comment_id, c.body, c.created_at, u.username, u.name
        FROM comments c
        JOIN app_users u ON u.id = c.author_id
        WHERE c.post_id = $1
@@ -467,6 +478,7 @@ communityRouter.get("/posts/:id/comments", async (request, response) => {
       success: true,
       comments: result.rows.map((row) => ({
         id: Number(row.id),
+        parentCommentId: row.parent_comment_id === null ? null : Number(row.parent_comment_id),
         authorUsername: row.username,
         authorName: row.name,
         body: row.body,

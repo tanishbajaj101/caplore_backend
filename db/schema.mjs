@@ -106,12 +106,17 @@ export async function initializeDatabase() {
       id BIGSERIAL PRIMARY KEY,
       post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
       author_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      parent_comment_id BIGINT REFERENCES comments(id) ON DELETE CASCADE,
       body VARCHAR(1200) NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  // CREATE TABLE IF NOT EXISTS above is a no-op on a table that already exists,
+  // so this column has to be added separately for deployments that predate it.
+  await pool.query(`ALTER TABLE comments ADD COLUMN IF NOT EXISTS parent_comment_id BIGINT REFERENCES comments(id) ON DELETE CASCADE`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_comments_post_created ON comments(post_id, created_at ASC)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments(author_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_comment_id)`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS likes (
