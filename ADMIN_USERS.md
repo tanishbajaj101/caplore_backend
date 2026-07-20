@@ -20,7 +20,7 @@ node scripts/hash-password.mjs "YourAdminPassword"
 
 The direct `psql` steps below are still useful for emergency/manual operations.
 
-Table shape (defined in `server.mjs`):
+Table shape (defined in `db/schema.mjs`):
 
 ```sql
 app_users (
